@@ -1,0 +1,91 @@
+Modèle logique
+
+
+Note: Tous les attributs sont considérés comme NOT NULL sauf si on précise le contraire.
+
+
+Ressource (#code : integer, titre : varchar, dpublication : date, editeur : varchar, genre : varchar, classification: varchar) tout NOT NULL , CHECK length(classification) = 13
+Livre (#code => Ressource, ISBN : varchar, resume :text, langue : varchar)  tout NOT NULL, CHECK length(ISBN) = 13
+Film (#code => Ressource, langue :varchar, longueur : integer, synopsis : text) tout NOT NULL
+Musique(#code => Ressource, longueur : integer) tout NOT NULL
+
+
+CONTRAINTES DE RESSOURCE ET SES CLASSES FILLES:
+
+Contraintes pour éviter qu’une ressource soit de deux types:
+
+INTERSECTION(PROJECTION(Film,code),PROJECTION(Livre,code))={}
+INTERSECTION(PROJECTION(Film,code),PROJECTION(Musique,code))={}
+INTERSECTION(PROJECTION(Livre,code),PROJECTION(Musique,code))={}
+
+
+
+Contraintes pour retrouver toutes les ressources
+
+PROJECTION(Ressource,id) = UNION(Projection(Livre,code),UNION(Projection(Film,code),Projection(Musique)))
+
+Vues pour utiliser les données de chaque type de ressource:
+
+vFilm = JointureNaturelle(Ressource, Film)
+vLivre = JointureNaturelle(Ressource, Livre)
+vMusique = JointureNaturelle(Ressource,Musique)
+
+
+Contraintes liées aux associations avec les différents contributeurs:
+
+PROJECTION(Livre,code) = PROJECTION(Ecrit,code) AND PROJECTION (Auteur, idContrib) = PROJECTION (Ecrit,idContrib)
+PROJECTION(Film,code) = PROJECTION(JoueDans,code) AND PROJECTION (Acteur, idContrib) = PROJECTION (JoueDans,idContrib)
+PROJECTION(Film,code) = PROJECTION(Realise,code) AND PROJECTION (Realisateur, idContrib) = PROJECTION (Realise,idContrib)
+PROJECTION(Musique,code) = PROJECTION(Joue,code) AND PROJECTION (Interprete, idContrib) = PROJECTION (Joue,idContrib)
+PROJECTION(Musique,code) = PROJECTION(Compose,code) AND PROJECTION (Compositeur, idContrib) = PROJECTION (Compose,idContrib)
+
+Ecrit (#idcontrib=>Auteur, #code => Livre);
+Realise(#idcontrib=>Realisateur, #code => Film);
+JoueDans(#idcontrib=>Acteur, #code => Film);
+Compose(#idcontrib=>Compositeur, #code =>Musique);
+Joue(#idcontrib=>Interprete, #code =>Musique);
+
+
+Contributeur (#idContrib: integer, nom: varchar, prenom: varchar, dnaissance :date, nationalite: varchar) tout NOT NULL
+Auteur (#idContrib => Contributeur) 
+Realisateur (#idContrib => Contributeur)
+Acteur (#idContrib => Contributeur)
+Compositeur (#idContrib => Contributeur)
+Interprete (#idContrib => Contributeur)
+
+
+CONTRAINTES CONTRIBUTEURS :
+
+-PROJECTION(Contributeur, idContrib) = PROJECTION(Auteur, idContrib) UNION PROJECTION (Realisateur, idContrib) UNION PROJECTION (Acteur, idContributeur) UNION PROJECTION (Compositeur, idContrib) UNION PROJECTION (Interprete, idContrib)
+
+vues contributeurs
+
+vActeur = JointureNaturelle( Acteur, Contributeur)
+vAuteur = JointureNaturelle ( Auteur, Contributeur)
+vRealisateur = JointureNaturelle ( Realisateur, Contributeur)
+vCompositeur = JointureNaturelle ( Compositeur, Contributeur)
+
+
+Exemplaire (#code=>Ressource, #codexemplaire : integer,etat_bon, etat_neuf, etat_perdu, etat_abime) tout NOT NULL
+
+CONTRAINTES EXEMPLAIRE (Contrainte de composition)
+
+PROJECTION (Ressource,code) = PROJECTION(Exemplaire,code)
+
+Prêt (#code=>Exemplaire, #codexemplaire => Exemplaire, #login=>Adherent #dateemprunt : date, dateretour_fixe : date, dateretour_reelle : date, etatretour_neuf, etatretour_bon, etatretour_perdu, etatretour_abime); tout NOT NULL SAUF dateretour_reelle et etatretour
+CHECK(dateemprunt = CURRENT_DATE)
+
+Sanction (#code=>Exemplaire, #codexemplaire => Exemplaire, #login=>Adherent #dateemprunt : date, remboursement : boolean, finsanction : date); tout NOT NULL sauf finsanction et remboursement.
+
+
+Personnel (#login : varchar, mdp : varchar, nom : varchar, prenom : varchar, adresse : varchar, mail : varchar, role : varchar, salaire : decimal); tout NOT NULL
+CHECK mail AS ‘%@%.%’ → pour dire la forme qu’à l’adresse mail 
+
+Adherent (#login : varchar, mdp : varchar, nom : varchar, prenom : varchar, adresse : varchar, mail : varchar, dnaissance : date, dinscription : date, numtel : integer, nbpret : integer, etudiant : boolean);
+CHECK (mail LIKE '%@%.%')
+CHECK (dnaissance < CURRENT_DATE)
+CHECK (dinscription < CURRENT_DATE)
+
+CONTRAINTES PERSONNES
+
+INTERSECTION(PROJECTION(Adherent, login), PROJECTION (Personnel, login))={}

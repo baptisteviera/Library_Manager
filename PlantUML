@@ -1,0 +1,105 @@
+PlantUML
+
+@startuml
+
+
+abstract class Ressource
+abstract class Contributeur
+abstract class Personnes
+class typeetat << (D,#FF7700) DataType>> {
+  neuf
+  bon
+  abimé
+  perdu
+}
+
+Ressource*-right-"*" Exemplaire
+Ressource <|-- Livre
+Ressource <|-- Film
+Ressource <|-- Musique
+
+Livre “1-N” -- “1-N” Auteur : Ecrit
+Film “1-N”-- “1-N”Realisateur : Realise
+Film “1-N”-- “1-N”Acteur : Joue dans
+Musique “1-N”--”1-N” Compositeur : Compose
+Musique “1-N”--”1-N” Interprète: Joue
+
+Auteur --|> Contributeur
+Realisateur --|> Contributeur
+Acteur --|> Contributeur
+Interprète --|> Contributeur
+Compositeur --|> Contributeur
+
+
+
+Exemplaire "*"-right-"*" Adherent
+Adherent --|> Personnes
+Personnel --|> Personnes
+(Exemplaire, Adherent) .. Pret
+(Exemplaire, Adherent) “1..1”..”*” Sanction
+
+Sanction : remboursement : boolean
+Sanction : finsanction : date
+
+Pret : dateemprunt: date {key}
+Pret : dateretour_fixe: date
+Pret : dateretour_reelle[0..1]: date
+Pret : etatretour: typeetat
+Pret : emprunt()
+Pret : duree()
+
+
+Ressource : code: integer {key}
+Ressource : titre: varchar
+Ressource  : dpublication: date
+Ressource : editeur : varchar 
+Ressource  : genre: varchar
+Ressource  : classification: varchar
+
+Livre : ISBN: ISBN_code
+Livre : resume: text
+Livre : langue : varchar
+
+class Livre
+note top: - ISBN_code est un texte de 13 caractères exactement
+class Ressource
+note top: - longueur(classification)=13
+
+Film : langue:varchar
+Film : longueur:integer
+Film : synopsis:text
+
+Musique : longueur:integer
+
+
+Contributeur : id:integer {key}
+Contributeur : nom:varchar
+Contributeur : prenom:varchar
+Contributeur : dnaissaance:date
+Contributeur : nationalite:varchar
+
+
+Exemplaire : codexemplaire: integer {local key}
+Exemplaire : etat: typeetat
+Exemplaire : nbexemplairesdispo()
+
+Personnes : login: varchar {key}
+Personnes : mdp: varchar
+Personnes  : nom:  varchar
+Personnes  : prenom: varchar
+Personnes  : mail: varchar
+
+Personnel  : role: varchar
+Personnel  : salaire: decimal
+
+Adherent : dnaissaance: date
+Adherent : numtel: integer
+Adherent : nbpret: integer
+Adherent : dinscription: date
+Adherent : etudiant: boolean
+
+
+
+
+@enduml
+
